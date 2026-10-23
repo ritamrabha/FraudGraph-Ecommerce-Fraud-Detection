@@ -229,33 +229,5 @@ FraudGraph-Ecommerce-Fraud-Detection/
 └── README.md                           # Comprehensive documentation & Viva guide
 ```
 
----
-
-## 🎓 Viva Voce Q&A Defense Guide
-
-### 🗣️ Swastayan (Problem Definition & Graph Construction)
-- **Q: Why use a graph representation instead of standard tabular machine learning?**  
-  *A*: Fraudsters do not operate in isolation; they coordinate in syndicates to mass-upvote products or share identical review scripts. Tabular classifiers treat each user as an isolated row, rendering them completely blind to topological coordination. Our multi-relational graph captures co-purchased items (U-P-U), synchronized rating spikes (U-S-U), and duplicated review texts (U-V-U).
-
-### 🗣️ Ritam (Model Architecture & Imbalance Handling)
-- **Q: How did you solve the severe 9.5% class imbalance?**  
-  *A*: We used class-weighted cross-entropy loss with `pos_weight = N_genuine / N_fraud ≈ 10.5` during backpropagation, coupled with validation-set decision threshold tuning. Lowering the decision cutoff from `0.50` to **`0.38`** increased fraud recall from 74% to **85.3%** while maintaining a low 5.4% false-positive rate.
-- **Q: What is the difference between GCN and GraphSAGE in your benchmarks?**  
-  *A*: GCN performs full-graph symmetric Laplacian smoothing, which blurs node identities. GraphSAGE explicitly concatenates the node's original self-features with aggregated neighborhood features: $\mathbf{h}_v = \sigma(\mathbf{W} \cdot [\mathbf{h}_v \,\|\, \text{AGG}(\{\mathbf{h}_u\})])$, preserving the individual user's behavioral footprint.
-
-### 🗣️ Himanshu (Camouflage Attacks & CARE-GNN Defense)
-- **Q: Why did vanilla GCN perform worse than XGBoost (0.832 vs 0.884 AUC)?**  
-  *A*: Because of **fraud camouflage**. Malicious accounts intentionally review popular genuine items to connect to benign users. Standard GCN blindly averages across all neighbors, smoothing away the fraud signals. XGBoost, evaluating only isolated user features, avoided this topological poisoning.
-- **Q: How does CARE-GNN overcome camouflage?**  
-  *A*: CARE-GNN computes feature similarity across each edge before aggregation. Dissimilar edges connecting fraudsters to benign accounts are pruned, allowing message passing only across genuine coordinated links.
-
-### 🗣️ Rishiraj (Real-Time Deployment & Ring Mining)
-- **Q: Can this system handle real-time production throughput?**  
-  *A*: Yes. Using optimized PyTorch Sparse CSR representations, a 2-hop ego-graph extraction and inference pass takes **39 to 41 ms on a standard CPU**, easily meeting e-commerce SLA limits.
-- **Q: How does the fraud ring miner work?**  
-  *A*: It isolates nodes exceeding the optimal fraud threshold ($P \ge 0.38$), constructs an induced multi-relational subgraph, and applies Union-Find connected component analysis to expose collusive review syndicates.
-
----
-
 ## 📄 License
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

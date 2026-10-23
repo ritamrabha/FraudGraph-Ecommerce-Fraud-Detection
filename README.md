@@ -7,7 +7,7 @@
 [![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-blue.svg)]()
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)]()
 
-> **Final Year Project · B.Tech CSE (AI & ML)**  
+> **MSDSM AIML Project**  
 > **Team Members**: Swastayan, Ritam, Himanshu, Rishiraj  
 > **Core Concept**: Modeling reviewers, products, and rating collisions as a multi-relational graph to expose coordinated fraud rings and defeat camouflage attacks that row-by-row models miss.
 

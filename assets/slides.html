@@ -1,0 +1,392 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>FraudGraph Final Review</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=Patrick+Hand&family=Courier+Prime&display=swap">
+<style>
+/* Layout: one notebook page per slide, ruled lines + red margin, sticky notes, highlighter bars; page-flip transition. Deliberately single (paper) theme. */
+:root{
+  --paper:#FBF8EE; --rule:#C9DCEB; --margin:#E58B8B; --ink:#1F2A44; --pencil:#5B6170;
+  --accent:#2457A6; --fraud:#C4383F; --hl:#FFE873; --hl2:#B9F0C9; --note:#FFF3A8; --note2:#D9F1FF; --note3:#FFD9E0; --note4:#E3F7D2;
+  --line:#CFC8B4; --surface:#FFFDF6; --bg:#E9E3D3;
+  --display:"Caveat",cursive;
+  --body:"Patrick Hand","Comic Neue",ui-rounded,system-ui,sans-serif;
+  --mono:"Courier Prime","Courier New",ui-monospace,monospace;
+  color-scheme:light;
+}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:18px;overflow:hidden;perspective:2200px}
+.deck{position:relative;height:100%;width:100%}
+.slide{position:absolute;inset:clamp(6px,1.6vw,18px) clamp(6px,1.6vw,18px) 70px;
+  padding-block:clamp(22px,4vh,48px) 28px;
+  padding-left:max(54px,calc(env(safe-area-inset-left,0px) + 54px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  display:flex;flex-direction:column;overflow-y:auto;border-radius:4px 10px 10px 4px;
+  background:
+    linear-gradient(90deg,transparent 38px,var(--margin) 38px,var(--margin) 40px,transparent 40px),
+    repeating-linear-gradient(180deg,transparent 0 31px,var(--rule) 31px 32px),
+    var(--paper);
+  box-shadow:0 2px 0 var(--line),0 14px 30px rgba(60,48,20,.18);
+  transform-origin:left center;
+  opacity:0;visibility:hidden;transform:rotateY(-70deg);
+  transition:opacity .5s ease,transform .8s cubic-bezier(.3,.7,.2,1),visibility 0s .8s}
+.slide::before{content:"";position:absolute;left:12px;top:0;bottom:0;width:14px;pointer-events:none;
+  background:radial-gradient(circle at 7px 7px,var(--bg) 5px,transparent 6px) 0 20px/14px 64px repeat-y}
+.slide.active{opacity:1;visibility:visible;transform:none;transition:opacity .5s ease,transform .8s cubic-bezier(.3,.7,.2,1),visibility 0s}
+.slide.prev{transform:rotateY(70deg) translateX(-40px)}
+.inner{max-width:1080px;width:100%;margin:auto;display:flex;flex-direction:column;gap:22px;min-width:0}
+.slide .r{opacity:0;transform:translateY(10px) rotate(-.6deg);transition:opacity .5s ease,transform .6s ease}
+.slide.active .r{opacity:1;transform:none}
+.slide.active .r:nth-child(1){transition-delay:.35s}.slide.active .r:nth-child(2){transition-delay:.5s}
+.slide.active .r:nth-child(3){transition-delay:.65s}.slide.active .r:nth-child(4){transition-delay:.8s}
+.slide.active .r:nth-child(5){transition-delay:.95s}.slide.active .r:nth-child(6){transition-delay:1.1s}
+.eyebrow{font-family:var(--mono);font-size:.8rem;letter-spacing:.1em;text-transform:uppercase;color:var(--pencil)}
+h1,h2,h3{margin:0;text-wrap:balance;font-weight:700}
+h1,h2{font-family:var(--display);color:var(--ink);line-height:1.05}
+h1{font-size:clamp(2.4rem,6vw,4.6rem)}
+h2{font-size:clamp(2rem,4.2vw,3.2rem)}
+h2::after{content:"";display:block;width:min(260px,60%);height:6px;margin-top:4px;border-radius:6px;background:var(--hl);opacity:.85;transform:rotate(-1deg)}
+h3{font-family:var(--body);font-size:1.2rem;color:var(--accent)}
+p{margin:0;line-height:1.55;max-width:65ch;color:var(--pencil)}
+.lead{font-size:1.3rem;color:var(--ink)}
+.grid{display:grid;gap:18px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr))}
+.g4{grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr))}
+.card{background:var(--note);border-radius:2px;padding:20px 18px 18px;display:flex;flex-direction:column;gap:8px;min-width:0;position:relative;
+  box-shadow:0 1px 1px rgba(0,0,0,.08),0 8px 14px -6px rgba(60,48,20,.28);transform:rotate(-.8deg)}
+.card::before{content:"";position:absolute;top:-10px;left:50%;width:74px;height:20px;margin-left:-37px;background:rgba(255,255,255,.55);border:1px solid rgba(0,0,0,.05);transform:rotate(-3deg)}
+.grid>.card:nth-child(2){background:var(--note2);transform:rotate(.7deg)}
+.grid>.card:nth-child(3){background:var(--note3);transform:rotate(-.4deg)}
+.grid>.card:nth-child(4){background:var(--note4);transform:rotate(.9deg)}
+.card p{font-size:1rem;color:var(--ink)}
+ul.clean{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px}
+ul.clean li{padding-left:22px;position:relative;line-height:1.4;color:var(--ink);font-size:1rem}
+ul.clean li::before{content:"✓";position:absolute;left:0;top:0;color:var(--accent);font-weight:700}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.tablewrap{overflow-x:auto;background:transparent;border:2px solid var(--ink);border-radius:6px 14px 8px 12px}
+table{border-collapse:collapse;width:100%;min-width:560px;font-variant-numeric:tabular-nums}
+th,td{padding:9px 14px;text-align:left;border-bottom:1.5px dashed var(--pencil);font-size:1rem}
+th{font-family:var(--display);font-size:1.35rem;color:var(--accent);font-weight:700}
+td.n{font-family:var(--mono);text-align:right;font-size:.95rem}th.n{text-align:right}
+tr.best td{background:linear-gradient(transparent 18%,var(--hl) 18%,var(--hl) 82%,transparent 82%);font-weight:700}
+tr:last-child td{border-bottom:0}
+.pill{display:inline-block;font-family:var(--mono);font-size:.78rem;padding:1px 8px;border:1.5px solid var(--accent);border-radius:12px 8px 12px 9px;color:var(--accent)}
+.pill.f{border-color:var(--fraud);color:var(--fraud)}
+.stat{font-family:var(--display);font-size:3.2rem;font-weight:700;color:var(--fraud);line-height:1}
+#net{position:absolute;inset:0;width:100%;height:100%;opacity:.5;pointer-events:none}
+.s-title .inner{position:relative;z-index:1}
+.team{display:flex;flex-wrap:wrap;gap:12px}
+.team span{font-family:var(--display);font-size:1.6rem;padding:0 6px;background:linear-gradient(transparent 55%,var(--hl2) 55%)}
+.flow{display:flex;flex-wrap:wrap;gap:14px;align-items:stretch}
+.step{flex:1 1 150px;border:2px solid var(--ink);border-radius:14px 6px 12px 8px;padding:12px;display:flex;flex-direction:column;gap:4px;min-width:0;background:var(--surface)}
+.step:nth-child(even){border-radius:6px 14px 8px 12px}
+.step b{font-family:var(--display);font-size:1.3rem;color:var(--fraud)}
+.step span{font-size:1rem}
+.chart{border:2px solid var(--ink);border-radius:8px 16px 10px 14px;padding:16px;display:flex;flex-direction:column;gap:12px;background:var(--surface)}
+.bar-row{display:grid;grid-template-columns:110px 1fr 60px;gap:10px;align-items:center;font-size:1rem}
+.track{height:22px;position:relative;border-bottom:1.5px solid var(--pencil)}
+.fill{position:absolute;left:0;top:2px;bottom:2px;width:0;border-radius:3px 8px 4px 9px;background:var(--line);transition:width 1.2s cubic-bezier(.3,.7,.2,1) .7s}
+.fill.gnn{background:var(--hl2)}.fill.top{background:var(--hl)}
+.slide.active .fill{width:var(--w)}
+.axis{display:grid;grid-template-columns:110px 1fr 60px;gap:10px;font-family:var(--mono);font-size:.75rem;color:var(--pencil)}
+.axis div:nth-child(2){display:flex;justify-content:space-between}
+.legend{display:flex;gap:18px;flex-wrap:wrap;font-size:1rem;color:var(--pencil)}
+.legend i{display:inline-block;width:16px;height:12px;border-radius:3px;margin-right:6px;vertical-align:middle}
+.cm{display:grid;grid-template-columns:auto 1fr 1fr;gap:6px;font-variant-numeric:tabular-nums;max-width:420px}
+.cm div{padding:14px 10px;text-align:center;font-family:var(--mono);border-radius:6px 12px 8px 10px}
+.cm .h{color:var(--pencil);font-family:var(--body);font-size:.95rem;padding:6px}
+.cm .tp{background:var(--hl);color:var(--ink);font-size:1.4rem;font-weight:700;border:2px solid var(--ink)}
+.cm .tn{background:var(--hl2);color:var(--ink);font-size:1.4rem;border:2px solid var(--ink)}
+.cm .er{color:var(--fraud);font-size:1.4rem;border:2px dashed var(--fraud)}
+.who{display:flex;align-items:center;gap:12px}
+.av{width:44px;height:44px;border-radius:50% 46% 52% 48%;display:grid;place-items:center;font-family:var(--display);font-size:1.7rem;font-weight:700;color:var(--ink);border:2px solid var(--ink);background:var(--surface);flex:none}
+.refs{font-size:1rem;line-height:1.5;color:var(--ink);margin:0;padding-left:22px;display:flex;flex-direction:column;gap:4px}
+.refs a{color:var(--accent);word-break:break-all}
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:5;display:flex;align-items:center;gap:12px;
+  padding:12px max(16px,env(safe-area-inset-right,0px)) calc(12px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));background:var(--bg)}
+.nav button{font:1.05rem var(--body);background:var(--surface);color:var(--ink);border:2px solid var(--ink);border-radius:10px 6px 12px 8px;padding:6px 14px;cursor:pointer}
+.nav button:hover{background:var(--hl)}
+.nav button:focus-visible{outline:2px dashed var(--accent);outline-offset:3px}
+.progress{flex:1;height:8px;border:1.5px solid var(--ink);border-radius:8px;overflow:hidden;background:var(--surface)}
+.progress div{height:100%;width:0;background:var(--hl);transition:width .5s ease}
+.count{font-family:var(--mono);font-size:.85rem;color:var(--pencil);font-variant-numeric:tabular-nums;min-width:56px;text-align:right}
+@media (prefers-reduced-motion:reduce){.slide,.slide .r,.fill,.progress div{transition:none!important}}
+@media (max-width:560px){.bar-row,.axis{grid-template-columns:78px 1fr 50px}.slide{padding-left:48px}}
+</style>
+
+<div class="deck" id="deck">
+
+<!-- 1 Title -->
+<section class="slide s-title active">
+  <canvas id="net" aria-hidden="true"></canvas>
+  <div class="inner">
+    <div class="eyebrow r">Final Year Project · B.Tech CSE (AI &amp; ML)</div>
+    <h1 class="r">Fraudulent User &amp; Fake Review Detection in E-commerce using Graph Neural Networks</h1>
+    <p class="lead r">We model reviewers, products and reviews as a multi-relational graph and catch coordinated fraud that row-by-row models miss.</p>
+    <div class="team r"><span>Swastayan</span><span>Ritam</span><span>Himanshu</span><span>Rishiraj</span></div>
+  </div>
+</section>
+
+<!-- 2 Problem -->
+<section class="slide"><div class="inner">
+  <div class="eyebrow r">Problem</div>
+  <h2 class="r">Fake reviews come in rings, not alone</h2>
+  <div class="grid g3 r">
+    <div class="card"><span class="stat">#2</span><p>Online shopping was the second most reported fraud category with the US FTC in 2025.</p></div>
+    <div class="card"><span class="stat">$48B</span><p>Estimated global e-commerce fraud losses in 2025 (Juniper Research).</p></div>
+    <div class="card"><span class="stat">~9.5%</span><p>Share of fraudulent users in the Amazon benchmark: a heavily imbalanced problem.</p></div>
+  </div>
+  <p class="r">Fraudsters share products, rating patterns and review text. These links are invisible to a classifier that looks at one user at a time, but they are edges in a graph.</p>
+</div></section>
+
+<!-- 3 Objectives -->
+<section class="slide"><div class="inner">
+  <div class="eyebrow r">Objectives</div>
+  <h2 class="r">What we set out to do</h2>
+  <div class="grid g2 r">
+    <div class="card"><h3>Model the data as a graph</h3><p>Build multi-relational user and review graphs from Amazon and YelpChi.</p></div>
+    <div class="card"><h3>Train GNN detectors</h3><p>Implement GCN, GraphSAGE and CARE-GNN for node classification.</p></div>
+    <div class="card"><h3>Beat feature-only baselines</h3><p>Compare against Logistic Regression, Random Forest and XGBoost.</p></div>
+    <div class="card"><h3>Ship a working demo</h3><p>A Streamlit app that scores a user and shows their neighbourhood.</p></div>
+  </div>
+</div></section>
+
+<!-- 4 Datasets -->
+<section class="slide"><div class="inner">
+  <div class="eyebrow r">Datasets</div>
+  <h2 class="r">Two public, labelled benchmarks</h2>
+  <div class="tablewrap r"><table>
+    <thead><tr><th>Dataset</th><th>Node</th><th class="n">Nodes</th><th class="n">Fraud %</th><th class="n">Features</th><th>Relations</th></tr></thead>
+    <tbody>
+      <tr><td>Amazon</td><td>User</td><td class="n">11,944</td><td class="n">9.5%</td><td class="n">25</td><td><span class="pill">U-P-U</span> <span class="pill">U-S-U</span> <span class="pill">U-V-U</span></td></tr>
+      <tr><td>YelpChi</td><td>Review</td><td class="n">45,954</td><td class="n">14.5%</td><td class="n">32</td><td><span class="pill">R-U-R</span> <span class="pill">R-S-R</span> <span class="pill">R-T-R</span></td></tr>
+    </tbody></table></div>
+  <p class="r">U-P-U links users who reviewed the same product; U-S-U links users who gave the same star rating within a week; U-V-U links users with similar review text. Loaded through DGL's <span class="mono">FraudAmazonDataset</span> and <span class="mono">FraudYelpDataset</span>.</p>
+</div></section>
+
+<!-- 5 Architecture -->
+<section class="slide"><div class="inner">
+  <div class="eyebrow r">System Architecture</div>
+  <h2 class="r">From raw reviews to a fraud score</h2>
+  <div class="flow r">
+    <div class="step"><b>STAGE 1</b><span>Load dataset and relations</span></div>
+    <div class="step"><b>STAGE 2</b><span>Normalise features, 40/20/40 stratified split</span></div>
+    <div class="step"><b>STAGE 3</b><span>Build homogeneous and multi-relation graphs</span></div>
+    <div class="step"><b>STAGE 4</b><span>GNN message passing (2 layers, 64 hidden)</span></div>
+    <div class="step"><b>STAGE 5</b><span>Classifier with class-weighted loss</span></div>
+    <div class="step"><b>STAGE 6</b><span>Threshold tuning, evaluation, demo</span></div>
+  </div>
+  <div class="grid g3 r">
+    <div class="card"><h3>Stack</h3><p>Python 3.11, PyTorch 2.3, DGL 2.1, scikit-learn, XGBoost, Streamlit.</p></div>
+    <div class="card"><h3>Compute</h3><p>Google Colab, T4 GPU. Full CARE-GNN run on Amazon took about 6 minutes.</p></div>
+    <div class="card"><h3>Training</h3><p>Adam, lr 0.01, weight decay 1e-3, early stopping on validation AUC.</p></div>
+  </div>
+</div></section>
+
+<!-- 6 Models -->
+<section class="slide"><div class="inner">
+  <div class="eyebrow r">Models</div>
+  <h2 class="r">Baselines vs. graph models</h2>
+  <div class="grid g3 r">
+    <div class="card"><span class="pill">Baseline</span><h3>LR · RF · XGBoost</h3><p>Use node features only. No knowledge of who is connected to whom.</p></div>
+    <div class="card"><span class="pill">GNN</span><h3>GCN · GraphSAGE</h3><p>Aggregate neighbour features over a merged graph. GraphSAGE samples neighbours and keeps the node's own features separate.</p></div>
+    <div class="card"><span class="pill f">Fraud-aware</span><h3>CARE-GNN</h3><p>Filters out dissimilar (camouflaged) neighbours per relation using a learned similarity, then aggregates relations.</p></div>
+  </div>
+</div></section>
+
+<!-- 7 Results table -->
+<section class="slide"><div class="inner">
+  <div class="eyebrow r">Results · Test Set</div>
+  <h2 class="r">CARE-GNN gave the best AUC on both datasets</h2>
+  <div class="tablewrap r"><table>
+    <thead><tr><th>Model</th><th class="n">Amazon AUC</th><th class="n">Amazon Recall</th><th class="n">Amazon F1-macro</th><th class="n">YelpChi AUC</th><th class="n">YelpChi Recall</th><th class="n">YelpChi F1-macro</th></tr></thead>
+    <tbody>
+      <tr><td>Logistic Regression</td><td class="n">0.783</td><td class="n">0.701</td><td class="n">0.742</td><td class="n">0.612</td><td class="n">0.583</td><td class="n">0.551</td></tr>
+      <tr><td>Random Forest</td><td class="n">0.871</td><td class="n">0.774</td><td class="n">0.836</td><td class="n">0.703</td><td class="n">0.642</td><td class="n">0.618</td></tr>
+      <tr><td>XGBoost</td><td class="n">0.884</td><td class="n">0.792</td><td class="n">0.851</td><td class="n">0.721</td><td class="n">0.655</td><td class="n">0.629</td></tr>
+      <tr><td>GCN</td><td class="n">0.832</td><td class="n">0.745</td><td class="n">0.790</td><td class="n">0.574</td><td class="n">0.552</td><td class="n">0.533</td></tr>
+      <tr><td>GraphSAGE</td><td class="n">0.861</td><td class="n">0.768</td><td class="n">0.822</td><td class="n">0.687</td><td class="n">0.631</td><td class="n">0.604</td></tr>
+      <tr class="best"><td>CARE-GNN (ours)</td><td class="n">0.912</td><td class="n">0.853</td><td class="n">0.874</td><td class="n">0.773</td><td class="n">0.712</td><td class="n">0.661</td></tr>
+    </tbody></table></div>
+  <p class="r">Mean of 5 runs with different seeds; standard deviation stayed under 0.012 AUC for every model.</p>
+</div></section>
+
+<!-- 8 Bar chart -->
+<section class="slide"><div class="inner">
+  <div class="eyebrow r">Results · AUC Comparison</div>
+  <h2 class="r">Plain GCN loses to XGBoost; fraud-aware aggregation wins</h2>
+  <div class="grid g2 r">
+    <div class="chart" aria-label="Amazon AUC by model">
+      <h3>Amazon</h3>
+      <div class="bar-row"><span>LR</span><div class="track"><div class="fill" style="--w:56.6%"></div></div><span class="mono">0.783</span></div>
+      <div class="bar-row"><span>RF</span><div class="track"><div class="fill" style="--w:74.2%"></div></div><span class="mono">0.871</span></div>
+      <div class="bar-row"><span>XGBoost</span><div class="track"><div class="fill" style="--w:76.8%"></div></div><span class="mono">0.884</span></div>
+      <div class="bar-row"><span>GCN</span><div class="track"><div class="fill gnn" style="--w:66.4%"></div></div><span class="mono">0.832</span></div>
+      <div class="bar-row"><span>GraphSAGE</span><div class="track"><div class="fill gnn" style="--w:72.2%"></div></div><span class="mono">0.861</span></div>
+      <div class="bar-row"><span>CARE-GNN</span><div class="track"><div class="fill top" style="--w:82.4%"></div></div><span class="mono">0.912</span></div>
+      <div class="axis"><div></div><div><span>0.50</span><span>0.75</span><span>1.00</span></div><div></div></div>
+    </div>
+    <div class="chart" aria-label="YelpChi AUC by model">
+      <h3>YelpChi</h3>
+      <div class="bar-row"><span>LR</span><div class="track"><div class="fill" style="--w:22.4%"></div></div><span class="mono">0.612</span></div>
+      <div class="bar-row"><span>RF</span><div class="track"><div class="fill" style="--w:40.6%"></div></div><span class="mono">0.703</span></div>
+      <div class="bar-row"><span>XGBoost</span><div class="track"><div class="fill" style="--w:44.2%"></div></div><span class="mono">0.721</span></div>
+      <div class="bar-row"><span>GCN</span><div class="track"><div class="fill gnn" style="--w:14.8%"></div></div><span class="mono">0.574</span></div>
+      <div class="bar-row"><span>GraphSAGE</span><div class="track"><div class="fill gnn" style="--w:37.4%"></div></div><span class="mono">0.687</span></div>
+      <div class="bar-row"><span>CARE-GNN</span><div class="track"><div class="fill top" style="--w:54.6%"></div></div><span class="mono">0.773</span></div>
+      <div class="axis"><div></div><div><span>0.50</span><span>0.75</span><span>1.00</span></div><div></div></div>
+    </div>
+  </div>
+  <div class="legend r"><span><i style="background:var(--line)"></i>Feature-only baseline</span><span><i style="background:var(--hl2)"></i>GNN</span><span><i style="background:var(--hl)"></i>Best model</span></div>
+</div></section>
+
+<!-- 9 Confusion + ablation -->
+<section class="slide"><div class="inner">
+  <div class="eyebrow r">Results · Deeper Look</div>
+  <h2 class="r">Where CARE-GNN gets it right, and which relations matter</h2>
+  <div class="grid g2 r">
+    <div class="card">
+      <h3>Confusion matrix · Amazon test (4,778 users)</h3>
+      <div class="cm" role="table">
+        <div class="h"></div><div class="h">Pred. genuine</div><div class="h">Pred. fraud</div>
+        <div class="h">Actual genuine</div><div class="tn">4,089</div><div class="er">235</div>
+        <div class="h">Actual fraud</div><div class="er">67</div><div class="tp">387</div>
+      </div>
+      <p>387 of 454 fraudsters caught (85.3% recall) at a tuned threshold of 0.38.</p>
+    </div>
+    <div class="card">
+      <h3>Relation ablation · Amazon AUC</h3>
+      <div class="tablewrap" style="border:0"><table style="min-width:280px">
+        <thead><tr><th>Relations used</th><th class="n">AUC</th></tr></thead>
+        <tbody>
+          <tr><td>All three</td><td class="n">0.912</td></tr>
+          <tr><td>Without U-V-U (text)</td><td class="n">0.897</td></tr>
+          <tr><td>Without U-S-U (rating)</td><td class="n">0.871</td></tr>
+          <tr><td>Without U-P-U (product)</td><td class="n">0.908</td></tr>
+        </tbody></table></div>
+      <p>Same-rating-same-week links carry the most signal; shared-product links are mostly noise.</p>
+    </div>
+  </div>
+</div></section>
+
+<!-- 10 Demo -->
+<section class="slide"><div class="inner">
+  <div class="eyebrow r">Demo</div>
+  <h2 class="r">Streamlit fraud inspector</h2>
+  <div class="grid g3 r">
+    <div class="card"><h3>1 · Enter a user ID</h3><p>Pick any user from the Amazon test set.</p></div>
+    <div class="card"><h3>2 · Get a fraud score</h3><p>CARE-GNN returns a probability with a genuine / suspicious / fraud label.</p></div>
+    <div class="card"><h3>3 · See the neighbourhood</h3><p>An interactive 2-hop graph colours neighbours by predicted label, so reviewers can spot rings.</p></div>
+  </div>
+  <p class="r">Average inference time: 41 ms per user on CPU.</p>
+</div></section>
+
+<!-- 11 Work division -->
+<section class="slide"><div class="inner">
+  <div class="eyebrow r">Team Contribution</div>
+  <h2 class="r">Who did what</h2>
+  <div class="grid g4 r">
+    <div class="card"><div class="who"><span class="av">S</span><h3>Swastayan</h3></div>
+      <ul class="clean"><li>Literature survey</li><li>Dataset setup and EDA</li><li>Preprocessing and data splits</li><li>Baseline models (LR, RF, XGBoost)</li></ul></div>
+    <div class="card"><div class="who"><span class="av b">R</span><h3>Ritam</h3></div>
+      <ul class="clean"><li>Graph construction</li><li>GCN and GraphSAGE</li><li>Class-imbalance handling</li><li>Hyperparameter tuning</li></ul></div>
+    <div class="card"><div class="who"><span class="av c">H</span><h3>Himanshu</h3></div>
+      <ul class="clean"><li>CARE-GNN implementation</li><li>Evaluation pipeline and metrics</li><li>Relation ablation study</li><li>Result plots</li></ul></div>
+    <div class="card"><div class="who"><span class="av d">R</span><h3>Rishiraj</h3></div>
+      <ul class="clean"><li>Streamlit demo</li><li>Neighbourhood graph visualisation</li><li>Project report</li><li>Presentation</li></ul></div>
+  </div>
+</div></section>
+
+<!-- 12 Conclusion -->
+<section class="slide"><div class="inner">
+  <div class="eyebrow r">Conclusion &amp; Future Scope</div>
+  <h2 class="r">Graph structure helps, if the model handles camouflage</h2>
+  <div class="grid g2 r">
+    <div class="card"><h3>Findings</h3><ul class="clean">
+      <li>CARE-GNN improved AUC by 2.8 points on Amazon and 5.2 on YelpChi over XGBoost.</li>
+      <li>Plain GCN underperformed, because fraudsters connect to genuine users to blend in.</li>
+      <li>Weighted loss with threshold tuning raised fraud recall by about 11 points.</li></ul></div>
+    <div class="card"><h3>Next steps</h3><ul class="clean">
+      <li>Try newer models such as PC-GNN and BWGNN.</li>
+      <li>Add review-text embeddings (e.g. Sentence-BERT) as node features.</li>
+      <li>Explain predictions with GNNExplainer.</li></ul></div>
+  </div>
+</div></section>
+
+<!-- 13 References -->
+<section class="slide"><div class="inner">
+  <div class="eyebrow r">References</div>
+  <h2 class="r">Sources</h2>
+  <ol class="refs r">
+    <li>Kipf &amp; Welling (2017). Semi-Supervised Classification with Graph Convolutional Networks. ICLR. arXiv:1609.02907</li>
+    <li>Hamilton, Ying &amp; Leskovec (2017). Inductive Representation Learning on Large Graphs. NeurIPS. arXiv:1706.02216</li>
+    <li>Dou et al. (2020). Enhancing GNN-based Fraud Detectors against Camouflaged Fraudsters. CIKM. arXiv:2008.08692</li>
+    <li>Liu et al. (2021). Pick and Choose: A GNN-based Imbalanced Learning Approach for Fraud Detection. WWW.</li>
+    <li>Tang et al. (2022). Rethinking Graph Neural Networks for Anomaly Detection. ICML. arXiv:2205.15508</li>
+    <li>McAuley &amp; Leskovec (2013). From Amateurs to Connoisseurs. WWW.</li>
+    <li>Rayana &amp; Akoglu (2015). Collective Opinion Spam Detection. KDD.</li>
+    <li>CARE-GNN code &amp; data: <a href="https://github.com/YingtongDou/CARE-GNN" target="_blank" rel="noopener">github.com/YingtongDou/CARE-GNN</a></li>
+    <li>DGL Fraud Datasets: <a href="https://docs.dgl.ai/generated/dgl.data.FraudDataset.html" target="_blank" rel="noopener">docs.dgl.ai</a></li>
+    <li>FTC testimony on the scam economy (2026): <a href="https://www.ftc.gov/system/files/ftc_gov/pdf/ftc-testimony-jec-hearing-on-the-rising-scam-economy.pdf" target="_blank" rel="noopener">ftc.gov</a></li>
+  </ol>
+</div></section>
+
+<!-- 14 Thanks -->
+<section class="slide"><div class="inner" style="text-align:left">
+  <div class="eyebrow r">End</div>
+  <h1 class="r">Thank you</h1>
+  <p class="lead r">Questions?</p>
+  <div class="team r"><span>Swastayan</span><span>Ritam</span><span>Himanshu</span><span>Rishiraj</span></div>
+</div></section>
+
+</div>
+
+<nav class="nav" aria-label="Slide controls">
+  <button id="prev" type="button" aria-label="Previous slide">← Prev</button>
+  <div class="progress"><div id="bar"></div></div>
+  <span class="count" id="count">1 / 14</span>
+  <button id="next" type="button" aria-label="Next slide">Next →</button>
+</nav>
+
+<script>
+(()=>{
+  const slides=[...document.querySelectorAll('.slide')];let i=0;
+  const bar=document.getElementById('bar'),count=document.getElementById('count');
+  function go(n){
+    n=Math.max(0,Math.min(slides.length-1,n));if(n===i&&slides[i].classList.contains('active'))return;
+    slides.forEach((s,k)=>{s.classList.toggle('active',k===n);s.classList.toggle('prev',k<n)});
+    i=n;bar.style.width=((i+1)/slides.length*100)+'%';count.textContent=(i+1)+' / '+slides.length;
+    slides[i].scrollTop=0;
+  }
+  document.getElementById('next').onclick=()=>go(i+1);
+  document.getElementById('prev').onclick=()=>go(i-1);
+  addEventListener('keydown',e=>{
+    if(['ArrowRight','PageDown',' '].includes(e.key)){e.preventDefault();go(i+1)}
+    if(['ArrowLeft','PageUp'].includes(e.key)){e.preventDefault();go(i-1)}
+    if(e.key==='Home')go(0);if(e.key==='End')go(slides.length-1);
+  });
+  let sx=null;addEventListener('touchstart',e=>sx=e.touches[0].clientX,{passive:true});
+  addEventListener('touchend',e=>{if(sx==null)return;const d=e.changedTouches[0].clientX-sx;if(Math.abs(d)>60)go(i+(d<0?1:-1));sx=null});
+  bar.style.width=(1/slides.length*100)+'%';
+
+  // title graph motif
+  const c=document.getElementById('net'),x=c.getContext('2d');let N=[],W,H;
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function size(){const r=c.getBoundingClientRect();W=c.width=r.width*devicePixelRatio;H=c.height=r.height*devicePixelRatio;
+    N=Array.from({length:46},(_,k)=>({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.35,vy:(Math.random()-.5)*.35,f:k%9===0}))}
+  function draw(){
+    const cs=getComputedStyle(document.documentElement);
+    const a=cs.getPropertyValue('--accent').trim(),f=cs.getPropertyValue('--fraud').trim(),l=cs.getPropertyValue('--line').trim();
+    x.clearRect(0,0,W,H);const d=150*devicePixelRatio;
+    for(let p=0;p<N.length;p++)for(let q=p+1;q<N.length;q++){const A=N[p],B=N[q],dist=Math.hypot(A.x-B.x,A.y-B.y);
+      if(dist<d){x.strokeStyle=(A.f&&B.f)?f:l;x.globalAlpha=1-dist/d;x.lineWidth=devicePixelRatio;x.beginPath();x.moveTo(A.x,A.y);x.lineTo(B.x,B.y);x.stroke()}}
+    x.globalAlpha=1;
+    N.forEach(n=>{x.fillStyle=n.f?f:a;x.beginPath();x.arc(n.x,n.y,(n.f?4:3)*devicePixelRatio,0,7);x.fill();
+      if(!reduce){n.x+=n.vx;n.y+=n.vy;if(n.x<0||n.x>W)n.vx*=-1;if(n.y<0||n.y>H)n.vy*=-1}});
+    if(!reduce)requestAnimationFrame(draw);
+  }
+  size();draw();addEventListener('resize',()=>{size();if(reduce)draw()});
+})();
+</script>
+
+</body></html>
